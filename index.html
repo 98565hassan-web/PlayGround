@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#05060f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Memory Maze — a Pac-Man game where the ghosts learn your routes level after level.">
+  <title>Memory Maze — Pac-Man</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="ambient" aria-hidden="true">
+    <div class="ambient__grid"></div>
+    <div class="ambient__orb ambient__orb--yellow"></div>
+    <div class="ambient__orb ambient__orb--blue"></div>
+    <div class="ambient__orb ambient__orb--pink"></div>
+  </div>
+
+  <div class="app">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Memory Maze home" id="brandHome">
+        <span class="brand__mark" aria-hidden="true">
+          <span class="pac-life pac-life--brand"></span>
+        </span>
+        <span class="brand__copy">
+          <span class="brand__kicker">PAC-MAN</span>
+          <span class="brand__title">MEMORY MAZE</span>
+        </span>
+      </a>
+
+      <div class="scoreboard" aria-label="Game statistics">
+        <div class="stat stat--score">
+          <span class="stat__label">SCORE</span>
+          <strong class="stat__value" id="score">000000</strong>
+        </div>
+        <div class="stat stat--best">
+          <span class="stat__label">BEST</span>
+          <strong class="stat__value" id="best">000000</strong>
+        </div>
+        <div class="stat stat--level">
+          <span class="stat__label">LEVEL</span>
+          <strong class="stat__value" id="level">01</strong>
+        </div>
+        <div class="stat stat--lives">
+          <span class="stat__label">LIVES</span>
+          <div class="lives" id="lives" aria-label="3 lives"></div>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button class="icon-btn" id="memoryBtn" type="button" aria-label="Toggle ghost memory vision" title="Ghost memory vision">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.4 12s3.4-6.3 9.6-6.3S21.6 12 21.6 12s-3.4 6.3-9.6 6.3S2.4 12 2.4 12Z"/><circle cx="12" cy="12" r="3.1"/></svg>
+        </button>
+        <button class="icon-btn" id="soundBtn" type="button" aria-label="Mute sound" title="Sound">
+          <svg class="icon-sound-on" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="M16 9.5a4 4 0 0 1 0 5"/><path d="M18.5 7a7.5 7.5 0 0 1 0 10"/></svg>
+          <svg class="icon-sound-off" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Z"/><path d="m17 9 5 5m0-5-5 5"/></svg>
+        </button>
+        <button class="icon-btn" id="pauseBtn" type="button" aria-label="Pause game" title="Pause">
+          <svg class="icon-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14M16 5v14"/></svg>
+          <svg class="icon-play" viewBox="0 0 24 24" aria-hidden="true"><path d="m8 5 11 7-11 7V5Z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="arcade" aria-label="Memory Maze game board">
+        <div class="board-card">
+          <div class="board-meta">
+            <div class="round-status">
+              <span class="live-dot" id="liveDot"></span>
+              <span id="statusText">GHOSTS ARE WATCHING</span>
+            </div>
+            <button class="memory-chip" id="memoryChip" type="button" aria-label="Show ghost memory map">
+              <span class="memory-chip__label">ROUTE MEMORY</span>
+              <strong id="memoryPct">0%</strong>
+              <span class="memory-chip__track"><i id="memoryFill"></i></span>
+            </button>
+          </div>
+
+          <div class="canvas-wrap" id="swipeArea">
+            <canvas id="game" aria-label="Pac-Man maze. Swipe to move."></canvas>
+            <div class="canvas-vignette" aria-hidden="true"></div>
+            <div class="scanlines" aria-hidden="true"></div>
+
+            <div class="screen screen--start is-active" id="startScreen">
+              <div class="start-glow" aria-hidden="true"></div>
+              <p class="eyebrow"><span></span> ADAPTIVE ARCADE <span></span></p>
+              <h1 class="hero-title">THEY<br><em>REMEMBER.</em></h1>
+              <p class="hero-copy">Every pellet trail teaches the ghosts a new shortcut.<br> Change your route before they learn it by heart.</p>
+              <button class="primary-btn" id="startBtn" type="button">
+                <span class="primary-btn__icon">▶</span>
+                <span>ENTER THE MAZE</span>
+                <span class="primary-btn__key">↵</span>
+              </button>
+              <div class="start-chips" aria-label="Controls">
+                <span><b>SWIPE</b> to turn</span>
+                <span><b>TILT</b> optional</span>
+                <span><b>KEYS</b> desktop</span>
+              </div>
+              <div class="ghost-preview" aria-hidden="true">
+                <i class="ghost-dot ghost-dot--red"></i>
+                <i class="ghost-dot ghost-dot--pink"></i>
+                <i class="ghost-dot ghost-dot--cyan"></i>
+                <i class="ghost-dot ghost-dot--orange"></i>
+                <span>4 MINDS. ONE MAZE.</span>
+              </div>
+            </div>
+
+            <div class="screen screen--level" id="levelScreen">
+              <p class="eyebrow"><span></span> LEVEL CLEARED <span></span></p>
+              <div class="level-number" id="levelNumber">02</div>
+              <h2 class="screen-title">THEY LEARNED.</h2>
+              <p class="screen-copy" id="levelCopy">Your routes are now part of the hunt.</p>
+              <div class="level-readout">
+                <div><span>ROUTE MEMORY</span><strong id="levelMemory">0%</strong></div>
+                <div><span>NEW THREAT</span><strong id="levelThreat">+0</strong></div>
+              </div>
+              <button class="primary-btn" id="nextBtn" type="button">
+                <span>ENTER LEVEL <b id="nextLevelLabel">02</b></span>
+                <span class="primary-btn__key">→</span>
+              </button>
+              <p class="micro-copy">The maze stays the same. The ghosts do not.</p>
+            </div>
+
+            <div class="screen screen--over" id="endScreen">
+              <p class="eyebrow eyebrow--danger"><span></span> RUN TERMINATED <span></span></p>
+              <h2 class="screen-title">GHOSTS<br><em>WIN.</em></h2>
+              <p class="screen-copy">They mapped <strong id="endMemory">0%</strong> of your route before the final bite.</p>
+              <div class="end-score">
+                <span>FINAL SCORE</span>
+                <strong id="endScore">000000</strong>
+                <small id="newBest">PERSONAL BEST</small>
+              </div>
+              <button class="primary-btn primary-btn--danger" id="restartBtn" type="button">
+                <span>RUN IT BACK</span>
+                <span class="primary-btn__key">↻</span>
+              </button>
+              <p class="micro-copy">A fresh run wipes their memory.</p>
+            </div>
+
+            <div class="screen screen--pause" id="pauseScreen">
+              <p class="eyebrow"><span></span> SIGNAL PAUSED <span></span></p>
+              <h2 class="screen-title">HOLD<br><em>THAT THOUGHT.</em></h2>
+              <p class="screen-copy">Take a breath. They are still learning.</p>
+              <button class="primary-btn" id="resumeBtn" type="button">
+                <span>RESUME RUN</span>
+                <span class="primary-btn__key">SPACE</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="board-foot">
+            <span class="board-tip"><b>↔</b> SWIPE THE BOARD</span>
+            <span class="board-rule">EAT EVERY DOT <i>•</i> BREAK YOUR PATTERN</span>
+          </div>
+        </div>
+      </section>
+
+      <aside class="side-panel">
+        <section class="panel panel--brief">
+          <div class="panel__topline">
+            <span class="eyebrow">LIVE BRIEFING</span>
+            <span class="signal"><i></i> ACTIVE</span>
+          </div>
+          <h2>They learn<br>how you run.</h2>
+          <p>Ghosts store your pellet trails between levels. Reuse a route and they will be waiting.</p>
+          <div class="memory-readout">
+            <div class="memory-readout__head">
+              <span>GHOST KNOWLEDGE</span>
+              <strong id="sideMemory">0%</strong>
+            </div>
+            <div class="memory-meter"><i id="sideMemoryFill"></i></div>
+            <div class="memory-readout__foot">
+              <span id="memoryLevel">LEVEL 01</span>
+              <span id="tileCount">0 / 0 TILES</span>
+            </div>
+          </div>
+          <button class="text-btn" id="sideMemoryBtn" type="button">
+            <span class="eye-icon" aria-hidden="true"></span> Reveal memory map
+          </button>
+        </section>
+
+        <section class="panel panel--ghosts">
+          <div class="panel__topline">
+            <span class="eyebrow">GHOST FILES</span>
+            <span class="panel__note">LEARNING RATE</span>
+          </div>
+          <div class="ghost-list" id="ghostList">
+            <div class="ghost-row" data-ghost="blinky">
+              <span class="ghost-avatar ghost-avatar--red"><i></i></span>
+              <span class="ghost-name"><b>BLINKY</b><small>THE CHASER</small></span>
+              <span class="ghost-meter"><i></i></span>
+              <span class="ghost-rate">0%</span>
+            </div>
+            <div class="ghost-row" data-ghost="pinky">
+              <span class="ghost-avatar ghost-avatar--pink"><i></i></span>
+              <span class="ghost-name"><b>PINKY</b><small>THE AMBUSHER</small></span>
+              <span class="ghost-meter"><i></i></span>
+              <span class="ghost-rate">0%</span>
+            </div>
+            <div class="ghost-row" data-ghost="inky">
+              <span class="ghost-avatar ghost-avatar--cyan"><i></i></span>
+              <span class="ghost-name"><b>INKY</b><small>THE FLANKER</small></span>
+              <span class="ghost-meter"><i></i></span>
+              <span class="ghost-rate">0%</span>
+            </div>
+            <div class="ghost-row" data-ghost="clyde">
+              <span class="ghost-avatar ghost-avatar--orange"><i></i></span>
+              <span class="ghost-name"><b>CLYDE</b><small>THE WILDCARD</small></span>
+              <span class="ghost-meter"><i></i></span>
+              <span class="ghost-rate">0%</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel panel--keys">
+          <div class="panel__topline">
+            <span class="eyebrow">CONTROLS</span>
+            <span class="panel__note">ANY DEVICE</span>
+          </div>
+          <div class="key-row"><span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></span><b>Move</b></div>
+          <div class="key-row"><span><kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd></span><b>Move</b></div>
+          <div class="key-row"><span><kbd>SPACE</kbd></span><b>Pause</b></div>
+          <p class="keys-note">On phone or tablet, swipe the maze or use the thumb pad. Tilt is optional.</p>
+        </section>
+      </aside>
+
+      <section class="mobile-intel" aria-label="Live ghost intelligence">
+        <div class="mobile-intel__head">
+          <span class="eyebrow">LIVE BRIEFING</span>
+          <span class="signal"><i></i> ADAPTING</span>
+        </div>
+        <div class="mobile-intel__grid">
+          <div class="mobile-intel__copy">
+            <strong>They learn how you run.</strong>
+            <span>Every trail becomes their shortcut.</span>
+          </div>
+          <div class="mobile-intel__memory">
+            <div><span>ROUTE MEMORY</span><b id="mobileMemory">0%</b></div>
+            <div class="memory-meter"><i id="mobileMemoryFill"></i></div>
+          </div>
+        </div>
+        <div class="mobile-intel__ghosts">
+          <span class="ghost-avatar ghost-avatar--red"><i></i></span>
+          <span class="ghost-avatar ghost-avatar--pink"><i></i></span>
+          <span class="ghost-avatar ghost-avatar--cyan"><i></i></span>
+          <span class="ghost-avatar ghost-avatar--orange"><i></i></span>
+          <span class="mobile-intel__note" id="mobileIntelNote">Four minds. One maze. They are watching.</span>
+        </div>
+      </section>
+    </main>
+
+    <div class="touch-deck" id="touchDeck">
+      <div class="touch-deck__left">
+        <div class="dpad" aria-label="Directional controls">
+          <button class="pad pad--up" type="button" data-dir="up" aria-label="Move up"><span>▲</span></button>
+          <button class="pad pad--left" type="button" data-dir="left" aria-label="Move left"><span>◀</span></button>
+          <div class="pad-center" aria-hidden="true"><i></i></div>
+          <button class="pad pad--right" type="button" data-dir="right" aria-label="Move right"><span>▶</span></button>
+          <button class="pad pad--down" type="button" data-dir="down" aria-label="Move down"><span>▼</span></button>
+        </div>
+      </div>
+      <div class="touch-deck__right">
+        <div class="touch-copy">
+          <span class="eyebrow">THUMB / MOTION</span>
+          <p>Swipe anywhere on the maze<br>or use the pad.</p>
+        </div>
+        <button class="tilt-btn" id="tiltBtn" type="button" aria-pressed="false">
+          <span class="tilt-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M10.5 5.5h3"/><path d="m9.5 14 2.5 3 2.5-3"/></svg>
+          </span>
+          <span class="tilt-btn__copy"><b>TILT CONTROL</b><small id="tiltState">TAP TO ENABLE</small></span>
+          <span class="switch" aria-hidden="true"><i></i></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="game.js"></script>
+</body>
+</html>

@@ -1,5 +1,19 @@
 # PlayGround
 
+## Memory Maze — Pac-Man
+
+A neon Pac-Man game with a twist: every pellet trail is evidence. The ghosts build a route map as you play, carry it into the next level, and use it to cut you off. Watch their knowledge meter, open **memory vision** to see the paths they remember, and keep changing your line.
+
+**Play:** open `index.html` through any static server, or run `./start.sh`.
+
+### Controls
+
+- **Phone / tablet:** swipe anywhere on the maze, or use the thumb pad.
+- **Tilt:** tap **Tilt Control** to opt in. On iOS this triggers the native motion-permission prompt in the same tap.
+- **Desktop:** arrow keys or `WASD` to move, `Space` to pause, `M` for memory vision.
+
+Built with plain HTML, CSS, and canvas — no build step and no external runtime dependencies.
+
 <!-- omgithub:readme:start -->
 ## 🚀 Build, play, and remix with OMGithub
 
